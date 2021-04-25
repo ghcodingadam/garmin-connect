@@ -43,7 +43,7 @@ type ActivityType struct {
 
 // Activity will retrieve details about an activity.
 func (c *Client) Activity(activityID int) (*Activity, error) {
-	URL := fmt.Sprintf("https://connect.garmin.com/modern/proxy/activity-service/activity/%d",
+	URL := fmt.Sprintf("https://connect.garmin.com/proxy/activity-service/activity/%d",
 		activityID,
 	)
 
@@ -60,7 +60,7 @@ func (c *Client) Activity(activityID int) (*Activity, error) {
 // Activities will list activities for displayName. If displayName is empty,
 // the authenticated user will be used.
 func (c *Client) Activities(displayName string, start int, limit int) ([]Activity, error) {
-	URL := fmt.Sprintf("https://connect.garmin.com/modern/proxy/activitylist-service/activities/%s?start=%d&limit=%d", displayName, start, limit)
+	URL := fmt.Sprintf("https://connect.garmin.com/proxy/activitylist-service/activities/%s?start=%d&limit=%d", displayName, start, limit)
 
 	if !c.authenticated() && displayName == "" {
 		return nil, ErrNotAuthenticated
@@ -80,7 +80,7 @@ func (c *Client) Activities(displayName string, start int, limit int) ([]Activit
 
 // RenameActivity can be used to rename an activity.
 func (c *Client) RenameActivity(activityID int, newName string) error {
-	URL := fmt.Sprintf("https://connect.garmin.com/modern/proxy/activity-service/activity/%d", activityID)
+	URL := fmt.Sprintf("https://connect.garmin.com/proxy/activity-service/activity/%d", activityID)
 
 	payload := struct {
 		ID   int    `json:"activityId"`
@@ -93,11 +93,11 @@ func (c *Client) RenameActivity(activityID int, newName string) error {
 // ExportActivity will export an activity from Connect. The activity will be written til w.
 func (c *Client) ExportActivity(id int, w io.Writer, format ActivityFormat) error {
 	formatTable := [activityFormatMax]string{
-		"https://connect.garmin.com/modern/proxy/download-service/files/activity/%d",
-		"https://connect.garmin.com/modern/proxy/download-service/export/tcx/activity/%d",
-		"https://connect.garmin.com/modern/proxy/download-service/export/gpx/activity/%d",
-		"https://connect.garmin.com/modern/proxy/download-service/export/kml/activity/%d",
-		"https://connect.garmin.com/modern/proxy/download-service/export/csv/activity/%d",
+		"https://connect.garmin.com/proxy/download-service/files/activity/%d",
+		"https://connect.garmin.com/proxy/download-service/export/tcx/activity/%d",
+		"https://connect.garmin.com/proxy/download-service/export/gpx/activity/%d",
+		"https://connect.garmin.com/proxy/download-service/export/kml/activity/%d",
+		"https://connect.garmin.com/proxy/download-service/export/csv/activity/%d",
 	}
 
 	if format >= activityFormatMax || format < ActivityFormatFIT {
@@ -140,7 +140,7 @@ func (c *Client) ExportActivity(id int, w io.Writer, format ActivityFormat) erro
 // ImportActivity will import an activity into Garmin Connect. The activity
 // will be read from file.
 func (c *Client) ImportActivity(file io.Reader, format ActivityFormat) (int, error) {
-	URL := "https://connect.garmin.com/modern/proxy/upload-service/upload/." + format.Extension()
+	URL := "https://connect.garmin.com/proxy/upload-service/upload/." + format.Extension()
 
 	switch format {
 	case ActivityFormatFIT, ActivityFormatTCX, ActivityFormatGPX:
@@ -224,7 +224,7 @@ func (c *Client) ImportActivity(file io.Reader, format ActivityFormat) (int, err
 
 // DeleteActivity will permanently delete an activity.
 func (c *Client) DeleteActivity(id int) error {
-	URL := fmt.Sprintf("https://connect.garmin.com/modern/proxy/activity-service/activity/%d", id)
+	URL := fmt.Sprintf("https://connect.garmin.com/proxy/activity-service/activity/%d", id)
 
 	return c.write("DELETE", URL, nil, 0)
 }

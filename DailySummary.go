@@ -110,6 +110,25 @@ type DailySummary struct {
 	MaxAverageHeartRate              int           `json:"maxAvgHeartRate"`
 }
 
+type TrainingStatus struct {
+	UserId                   int64 `json:"userId"`
+	MostRecentTrainingStatus MostRecentTrainingStatus `json:"mostRecentTrainingStatus"`
+}
+
+type MostRecentTrainingStatus struct {
+	UserId      int64 `json:"userId"`
+	LatestTrainingStatusData map[string]TrainingStatusData `json:"latestTrainingStatusData"`
+}
+
+type TrainingStatusData struct {
+	WeeklyTrainingLoad int32 `json:"weeklyTrainingLoad"`
+	LoadTunnelMin      int32 `json:"loadTunnelMin"`
+	LoadTunnelMax      int32 `json:"loadTunnelMax"`
+	TrainingStatus     int32 `json:"trainingStatus"`
+	FitnessTrend       int32 `json:"fitnessTrend"`
+	LoadLevelTrend     int32 `json:"loadLevelTrend"`
+}
+
 // DailySummary will retrieve a detailed daily summary for date. If
 // displayName is empty, the currently authenticated user will be used.
 func (c *Client) DailySummary(displayName string, date time.Time) (*DailySummary, error) {
@@ -121,7 +140,7 @@ func (c *Client) DailySummary(displayName string, date time.Time) (*DailySummary
 		displayName = c.Profile.DisplayName
 	}
 
-	URL := fmt.Sprintf("https://connect.garmin.com/modern/proxy/usersummary-service/usersummary/daily/%s?calendarDate=%s",
+	URL := fmt.Sprintf("https://connect.garmin.com/proxy/usersummary-service/usersummary/daily/%s?calendarDate=%s",
 		displayName,
 		formatDate(date),
 	)
@@ -186,4 +205,29 @@ func (c *Client) DailySummaries(userID string, from time.Time, until time.Time) 
 	ret.End = proxy.End.Time()
 
 	return ret, nil
+}
+
+func (c *Client) DailyTrainingStatus(day time.Time) (*MostRecentTrainingStatus, error) {
+	URL := fmt.Sprintf("https://connect.garmin.com/proxy/metrics-service/metrics/trainingstatus/aggregated/%s",
+		formatDate(day),
+	)
+
+	if !c.authenticated() {
+		return nil, ErrNotAuthenticated
+	}
+
+	// We use a proxy object to deserialize the values to proper Go types.
+	var proxy struct {
+		UserId      int64 `json:"userId"`
+		MostRecentTrainingStatus MostRecentTrainingStatus `json:"mostRecentTrainingStatus"`
+	}
+
+	err := c.getJSON(URL, &proxy)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := proxy.MostRecentTrainingStatus
+
+	return &ret, nil
 }
